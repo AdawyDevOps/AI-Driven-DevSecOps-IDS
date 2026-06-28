@@ -15,7 +15,7 @@
         restart_policy: always
         ports: ["9090:9090"]
         volumes:
-          - "{{ playbook_dir }}/prometheus.yml:/etc/prometheus/prometheus.yml"
+          - "/home/sara/grad-proj/ansible/prometheus.yml:/etc/prometheus/prometheus.yml"
           - "prom_data:/prometheus"
 
     - name: Run Grafana with Persistence
@@ -28,6 +28,12 @@
         ports: ["3000:3000"]
         volumes:
           - "grafana_data:/var/lib/grafana"
+
+    - name: Copy Webhook Listener to /opt
+      copy:
+        src: "./webhook_listener.py"
+        dest: "/opt/webhook_listener.py"
+        mode: "0755"
 
     - name: Start Webhook Listener
       shell: "nohup python3 /opt/webhook_listener.py > /var/log/webhook.log 2>&1 &"
@@ -64,31 +70,11 @@
   hosts: suricata
   become: yes
   tasks:
-    - name: Install Python Libraries for AI
-      pip:
-        name: [prometheus-client, scikit-learn, numpy, pandas]
-        extra_args: "--break-system-packages"
-
-    - name: Copy AI Components
-      copy:
-        src: "./{{ item }}"
-        dest: "/opt/{{ item }}"
-        mode: "0755"
-      loop:
-        - "model.pkl"
-        - "scaler.pkl"
-        - "log_exporter.py"
-
-    - name: Start AI Log Exporter
-      shell: "nohup python3 /opt/log_exporter.py > /var/log/ai_exporter.log 2>&1 &"
-      async: 10
-      poll: 0
-  become: yes
-  tasks:
-    - name: Install AI Dependencies
+    - name: Install System Dependencies
       apt:
         name: [python3-pip, docker.io]
         state: present
+        update_cache: yes
 
     - name: Install Python Libraries for AI
       pip:
@@ -97,13 +83,13 @@
 
     - name: Copy AI Components (Model, Scaler, Script)
       copy:
-        src: "{{ item.src }}"
-        dest: "{{ item.dest }}"
-        mode: "{{ item.mode }}"
+        src: "./{{ item }}"
+        dest: "/opt/{{ item }}"
+        mode: "0755"
       loop:
-        - { src: "./model.pkl", dest: "/opt/model.pkl", mode: "0644" }
-        - { src: "./scaler.pkl", dest: "/opt/scaler.pkl", mode: "0644" }
-        - { src: "./log_exporter.py", dest: "/opt/log_exporter.py", mode: "0755" }
+        - "model.pkl"
+        - "scaler.pkl"
+        - "log_exporter.py"
 
     - name: Start AI Log Exporter (Background)
       shell: "nohup python3 /opt/log_exporter.py > /var/log/ai_exporter.log 2>&1 &"
