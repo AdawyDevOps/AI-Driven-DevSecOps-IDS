@@ -1,6 +1,6 @@
 ---
 # ==========================================================
-# المرحلة 1: إعداد المراقبة والويب هوك (Control Plane)
+# المرحلة 1: إعداد المراقبة والويب هوك (Control Plane - Ansible Node)
 # ==========================================================
 - name: 1. Setup Local Monitoring & Webhook Listener
   hosts: localhost
@@ -15,7 +15,6 @@
         restart_policy: always
         ports: ["9090:9090"]
         volumes:
-          # تعديل: شيلنا /ansible/ لأنها مش موجودة في المسار على السيرفر
           - "/home/sara/grad-proj/prometheus.yml:/etc/prometheus/prometheus.yml"
           - "prom_data:/prometheus"
 
@@ -30,14 +29,19 @@
         volumes:
           - "grafana_data:/var/lib/grafana"
 
+    - name: Install Flask for Webhook (Fix ModuleNotFoundError)
+      pip:
+        name: flask
+        extra_args: "--break-system-packages"
+
     - name: Start Webhook Listener
-      # تعديل: تشغيل الملف من مكانه الأصلي في grad-proj عشان يشوف الـ inventory والـ playbooks
+      # نقوم بقفل النسخة القديمة أولاً ثم تشغيل الجديدة لضمان التحديث
       shell: "pkill -f webhook_listener.py || true && nohup python3 /home/sara/grad-proj/webhook_listener.py > /home/sara/grad-proj/webhook.log 2>&1 &"
       async: 10
       poll: 0
 
 # ==========================================================
-# المرحلة 2: إعداد الـ Honeypot
+# المرحلة 2: إعداد الـ Honeypot (المصيدة)
 # ==========================================================
 - name: 2. Setup Honeypot Node & Containers
   hosts: honeypot
@@ -79,7 +83,7 @@
 
     - name: Copy AI Components (Model, Scaler, Script)
       copy:
-        src: "./{{ item }}"
+        src: "{{ item }}"
         dest: "/opt/{{ item }}"
         mode: "0755"
       loop:
@@ -91,3 +95,6 @@
       shell: "nohup python3 /opt/log_exporter.py > /var/log/ai_exporter.log 2>&1 &"
       async: 10
       poll: 0
+
+
+     
