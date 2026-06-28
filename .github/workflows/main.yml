@@ -8,9 +8,8 @@ on:
 
 jobs:
 # =========================================================================
-# 1️⃣ CONTINUOUS INTEGRATION (CI) ZONE - فحص جودة وأمان الكود في السحاب
+# 1️⃣ CONTINUOUS INTEGRATION (CI) ZONE
 # =========================================================================
-  
   Python-Security-Audit:
     name: "Python Quality & Security Audit"
     runs-on: ubuntu-latest
@@ -37,7 +36,7 @@ jobs:
         run: pip-audit
 
       - name: "Step 6: SAST (Static Analysis Security Testing)"
-        # التعديل هنا: إضافة -s لتجاهل تحذيرات Shell Injection و Bind All Interfaces
+        # تجاهل تحذيرات الـ Webhook عشان الـ Pipeline تنجح
         run: bandit -r . -ll -s B605,B104
 
   Ansible-Validation:
@@ -54,12 +53,13 @@ jobs:
       - name: "Step 3: Fix Windows Encoding (dos2unix)"
         run: |
           sudo apt-get install -y dos2unix
-          # البحث عن الملفات في المجلد الرئيسي بناءً على الـ ls
-          find . -maxdepth 1 -name "*.yml" -exec dos2unix {} \;
-          find . -maxdepth 1 -name "*.yml" -exec sed -i '1s/^\xEF\xBB\xBF//' {} \;
+          # هنخلي البحث عام عشان لو الملفات في Root أو في فولدر ansible
+          find . -type f -name "*.yml" -exec dos2unix {} \;
+          find . -type f -name "*.yml" -exec sed -i '1s/^\xEF\xBB\xBF//' {} \;
 
       - name: "Step 4: Ansible Syntax Check"
-        # تم إزالة working-directory لأن الملفات في المجلد الرئيسي
+        # رجعنا الـ working-directory عشان الـ Runner يلاقي الملفات جوه الفولدر
+        working-directory: ./ansible
         run: |
           ansible-playbook site.yml --syntax-check
           ansible-playbook block_attacker.yml --syntax-check
@@ -81,9 +81,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 # =========================================================================
-# 2️⃣ CONTINUOUS DEPLOYMENT (CD) ZONE - النشر التلقائي جوه المعمل
+# 2️⃣ CONTINUOUS DEPLOYMENT (CD) ZONE
 # =========================================================================
-
   Deploy-to-EvENg:
     name: "Deploy to EVENg Environment"
     needs: Secrets-Scanning
@@ -94,5 +93,6 @@ jobs:
 
       - name: "Step 2: Execute Ansible Playbook"
         run: |
-          # تم إزالة cd ansible لأن الملفات في المجلد الرئيسي /home/sara/grad-proj
+          # السيرفر بتاعك (EVE-NG Node) فيه الملفات جوه ansible برضه في GitHub
+          cd ansible 
           ansible-playbook -i inventory.ini site.yml
