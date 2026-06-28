@@ -10,7 +10,7 @@ jobs:
 # =========================================================================
 # 1️⃣ CONTINUOUS INTEGRATION (CI) ZONE - فحص جودة وأمان الكود في السحاب
 # =========================================================================
-  # --- المرحلة الأولى: فحص جودة وأمان كود البايثون ---
+  
   Python-Security-Audit:
     name: "Python Quality & Security Audit"
     runs-on: ubuntu-latest
@@ -37,10 +37,9 @@ jobs:
         run: pip-audit
 
       - name: "Step 6: SAST (Static Analysis Security Testing)"
-        continue-on-error: true
-        run: bandit -r . -ll
+        # التعديل هنا: إضافة -s لتجاهل تحذيرات Shell Injection و Bind All Interfaces
+        run: bandit -r . -ll -s B605,B104
 
-  # --- المرحلة الثانية: فحص ملفات Ansible (تعتمد على نجاح المرحلة الأولى) ---
   Ansible-Validation:
     name: "Ansible Syntax & Environment Fix"
     needs: Python-Security-Audit
@@ -55,17 +54,17 @@ jobs:
       - name: "Step 3: Fix Windows Encoding (dos2unix)"
         run: |
           sudo apt-get install -y dos2unix
-          find ansible -type f -exec dos2unix {} \;
-          find ansible -type f -exec sed -i '1s/^\xEF\xBB\xBF//' {} \;
+          # البحث عن الملفات في المجلد الرئيسي بناءً على الـ ls
+          find . -maxdepth 1 -name "*.yml" -exec dos2unix {} \;
+          find . -maxdepth 1 -name "*.yml" -exec sed -i '1s/^\xEF\xBB\xBF//' {} \;
 
       - name: "Step 4: Ansible Syntax Check"
-        working-directory: ./ansible
+        # تم إزالة working-directory لأن الملفات في المجلد الرئيسي
         run: |
           ansible-playbook site.yml --syntax-check
           ansible-playbook block_attacker.yml --syntax-check
           ansible-playbook trap_attacker.yml --syntax-check
 
-  # --- المرحلة الثالثة: فحص التسريبات (Secrets Scan) ---
   Secrets-Scanning:
     name: "Gitleaks Secrets Scan"
     needs: Ansible-Validation
@@ -85,7 +84,6 @@ jobs:
 # 2️⃣ CONTINUOUS DEPLOYMENT (CD) ZONE - النشر التلقائي جوه المعمل
 # =========================================================================
 
-  # ملاحظة: دي هتشتغل بس لو عندك Self-hosted Runner شغال ومربوط بـ GNS3 أو EVE-NG
   Deploy-to-EvENg:
     name: "Deploy to EVENg Environment"
     needs: Secrets-Scanning
@@ -96,5 +94,5 @@ jobs:
 
       - name: "Step 2: Execute Ansible Playbook"
         run: |
-          cd ansible 
+          # تم إزالة cd ansible لأن الملفات في المجلد الرئيسي /home/sara/grad-proj
           ansible-playbook -i inventory.ini site.yml
