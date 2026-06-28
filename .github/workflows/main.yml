@@ -7,6 +7,11 @@ on:
     branches: [ "main" ]
 
 jobs:
+# =========================================================================
+# 1️⃣ CONTINUOUS INTEGRATION (CI) ZONE
+# =========================================================================
+
+  # المرحلة الأولى: فحص أمان البايثون
   Python-Security-Audit:
     name: "Python Quality & Security Audit"
     runs-on: ubuntu-latest
@@ -20,9 +25,10 @@ jobs:
       - name: "Step 3: Install Security Tools"
         run: pip install flake8 bandit pip-audit
       - name: "Step 4: SAST (Bandit Scan)"
-        # إضافة -s لتخطي تحذيرات الـ Webhook
+        # تم إضافة -s لتجاوز التحذيرات المعروفة في الـ Webhook
         run: bandit -r . -ll -s B605,B104
 
+  # المرحلة الثانية: فحص ملفات Ansible
   Ansible-Validation:
     name: "Ansible Syntax Check"
     needs: Python-Security-Audit
@@ -33,20 +39,39 @@ jobs:
       - name: "Step 2: Install Ansible"
         run: pip install ansible
       - name: "Step 3: Ansible Syntax Check"
-        working-directory: ./ansible  # مهم جداً للدخول للفولدر الصح
+        working-directory: ./ansible  # للدخول للفولدر الموجود على GitHub
         run: |
           ansible-playbook site.yml --syntax-check
           ansible-playbook block_attacker.yml --syntax-check
           ansible-playbook trap_attacker.yml --syntax-check
 
+  # المرحلة الثالثة: فحص تسريبات الأسرار (Gitleaks)
+  Secrets-Scanning:
+    name: "Gitleaks Secrets Scan"
+    needs: Ansible-Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Step 1: Checkout Code"
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # ضروري لـ Gitleaks لفحص التاريخ بالكامل
+      - name: "Step 2: Run Gitleaks"
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+# =========================================================================
+# 2️⃣ CONTINUOUS DEPLOYMENT (CD) ZONE
+# =========================================================================
+
   Deploy-to-EvENg:
     name: "Deploy to EVENg"
-    needs: Ansible-Validation
+    needs: Secrets-Scanning
     runs-on: self-hosted
     steps:
       - name: "Step 1: Checkout Code"
         uses: actions/checkout@v4
       - name: "Step 2: Execute Ansible Playbook"
-        working-directory: ./ansible # مهم جداً
+        working-directory: ./ansible 
         run: |
           ansible-playbook -i inventory.ini site.yml
