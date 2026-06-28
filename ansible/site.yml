@@ -15,7 +15,8 @@
         restart_policy: always
         ports: ["9090:9090"]
         volumes:
-          - "/home/sara/grad-proj/ansible/prometheus.yml:/etc/prometheus/prometheus.yml"
+          # تعديل: شيلنا /ansible/ لأنها مش موجودة في المسار على السيرفر
+          - "/home/sara/grad-proj/prometheus.yml:/etc/prometheus/prometheus.yml"
           - "prom_data:/prometheus"
 
     - name: Run Grafana with Persistence
@@ -29,19 +30,14 @@
         volumes:
           - "grafana_data:/var/lib/grafana"
 
-    - name: Copy Webhook Listener to /opt
-      copy:
-        src: "./webhook_listener.py"
-        dest: "/opt/webhook_listener.py"
-        mode: "0755"
-
     - name: Start Webhook Listener
-      shell: "nohup python3 /opt/webhook_listener.py > /var/log/webhook.log 2>&1 &"
+      # تعديل: تشغيل الملف من مكانه الأصلي في grad-proj عشان يشوف الـ inventory والـ playbooks
+      shell: "pkill -f webhook_listener.py || true && nohup python3 /home/sara/grad-proj/webhook_listener.py > /home/sara/grad-proj/webhook.log 2>&1 &"
       async: 10
       poll: 0
 
 # ==========================================================
-# المرحلة 2: إعداد الـ Honeypot (المصيدة)
+# المرحلة 2: إعداد الـ Honeypot
 # ==========================================================
 - name: 2. Setup Honeypot Node & Containers
   hosts: honeypot
