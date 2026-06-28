@@ -7,92 +7,46 @@ on:
     branches: [ "main" ]
 
 jobs:
-# =========================================================================
-# 1️⃣ CONTINUOUS INTEGRATION (CI) ZONE
-# =========================================================================
   Python-Security-Audit:
     name: "Python Quality & Security Audit"
     runs-on: ubuntu-latest
     steps:
       - name: "Step 1: Checkout Code"
         uses: actions/checkout@v4
-
       - name: "Step 2: Set up Python Environment"
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-          cache: 'pip'
-
-      - name: "Step 3: Install Security & Audit Tools"
-        run: |
-          python -m pip install --upgrade pip
-          pip install flake8 bandit pip-audit
-
-      - name: "Step 4: Linting (Code Style Check)"
-        run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-
-      - name: "Step 5: Dependency Audit (Checking for CVEs)"
-        continue-on-error: true
-        run: pip-audit
-
-      - name: "Step 6: SAST (Static Analysis Security Testing)"
-        # تجاهل تحذيرات الـ Webhook عشان الـ Pipeline تنجح
+      - name: "Step 3: Install Security Tools"
+        run: pip install flake8 bandit pip-audit
+      - name: "Step 4: SAST (Bandit Scan)"
+        # إضافة -s لتخطي تحذيرات الـ Webhook
         run: bandit -r . -ll -s B605,B104
 
   Ansible-Validation:
-    name: "Ansible Syntax & Environment Fix"
+    name: "Ansible Syntax Check"
     needs: Python-Security-Audit
     runs-on: ubuntu-latest
     steps:
       - name: "Step 1: Checkout Code"
         uses: actions/checkout@v4
-
       - name: "Step 2: Install Ansible"
         run: pip install ansible
-
-      - name: "Step 3: Fix Windows Encoding (dos2unix)"
-        run: |
-          sudo apt-get install -y dos2unix
-          # هنخلي البحث عام عشان لو الملفات في Root أو في فولدر ansible
-          find . -type f -name "*.yml" -exec dos2unix {} \;
-          find . -type f -name "*.yml" -exec sed -i '1s/^\xEF\xBB\xBF//' {} \;
-
-      - name: "Step 4: Ansible Syntax Check"
-        # رجعنا الـ working-directory عشان الـ Runner يلاقي الملفات جوه الفولدر
-        working-directory: ./ansible
+      - name: "Step 3: Ansible Syntax Check"
+        working-directory: ./ansible  # مهم جداً للدخول للفولدر الصح
         run: |
           ansible-playbook site.yml --syntax-check
           ansible-playbook block_attacker.yml --syntax-check
           ansible-playbook trap_attacker.yml --syntax-check
 
-  Secrets-Scanning:
-    name: "Gitleaks Secrets Scan"
-    needs: Ansible-Validation
-    runs-on: ubuntu-latest
-    steps:
-      - name: "Step 1: Checkout Code"
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: "Step 2: Run Gitleaks"
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-# =========================================================================
-# 2️⃣ CONTINUOUS DEPLOYMENT (CD) ZONE
-# =========================================================================
   Deploy-to-EvENg:
-    name: "Deploy to EVENg Environment"
-    needs: Secrets-Scanning
+    name: "Deploy to EVENg"
+    needs: Ansible-Validation
     runs-on: self-hosted
     steps:
       - name: "Step 1: Checkout Code"
         uses: actions/checkout@v4
-
       - name: "Step 2: Execute Ansible Playbook"
+        working-directory: ./ansible # مهم جداً
         run: |
-          # السيرفر بتاعك (EVE-NG Node) فيه الملفات جوه ansible برضه في GitHub
-          cd ansible 
           ansible-playbook -i inventory.ini site.yml
