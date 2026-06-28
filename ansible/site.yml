@@ -1,12 +1,22 @@
 ---
 # ==========================================================
-# المرحلة 1: إعداد المراقبة والويب هوك (Control Plane - Ansible Node)
+# المرحلة 1: إعداد المراقبة والويب هوك (Ansible Node - Localhost)
 # ==========================================================
 - name: 1. Setup Local Monitoring & Webhook Listener
   hosts: localhost
   connection: local
   become: yes
   tasks:
+    - name: Update APT cache
+      apt:
+        update_cache: yes
+      ignore_errors: yes
+
+    - name: Install Flask using APT (More stable than pip)
+      apt:
+        name: python3-flask
+        state: present
+
     - name: Run Prometheus with Persistence
       docker_container:
         name: prometheus_local
@@ -29,13 +39,8 @@
         volumes:
           - "grafana_data:/var/lib/grafana"
 
-    - name: Install Flask for Webhook (Fix ModuleNotFoundError)
-      pip:
-        name: flask
-        extra_args: "--break-system-packages"
-
     - name: Start Webhook Listener
-      # نقوم بقفل النسخة القديمة أولاً ثم تشغيل الجديدة لضمان التحديث
+      # نغلق أي نسخة قديمة ونشغل الجديدة من مسار المشروع
       shell: "pkill -f webhook_listener.py || true && nohup python3 /home/sara/grad-proj/webhook_listener.py > /home/sara/grad-proj/webhook.log 2>&1 &"
       async: 10
       poll: 0
@@ -82,6 +87,7 @@
         extra_args: "--break-system-packages"
 
     - name: Copy AI Components (Model, Scaler, Script)
+      # سيبحث الأنسيبل عن هذه الملفات داخل مجلد ansible في GitHub
       copy:
         src: "{{ item }}"
         dest: "/opt/{{ item }}"
@@ -95,6 +101,3 @@
       shell: "nohup python3 /opt/log_exporter.py > /var/log/ai_exporter.log 2>&1 &"
       async: 10
       poll: 0
-
-
-     
