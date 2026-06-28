@@ -12,7 +12,7 @@
         update_cache: yes
       ignore_errors: yes
 
-    - name: Install Flask using APT (More stable than pip)
+    - name: Install Flask using APT (More stable for background tasks)
       apt:
         name: python3-flask
         state: present
@@ -39,10 +39,14 @@
         volumes:
           - "grafana_data:/var/lib/grafana"
 
-    - name: Start Webhook Listener
-      # نغلق أي نسخة قديمة ونشغل الجديدة من مسار المشروع
-      shell: "pkill -f webhook_listener.py || true && nohup python3 /home/sara/grad-proj/webhook_listener.py > /home/sara/grad-proj/webhook.log 2>&1 &"
-      async: 10
+    - name: Start Webhook Listener (Persistent in Background)
+      # 1. sudo fuser: يغلق أي عملية قديمة تستخدم بورت 5000 لمنع التعارض
+      # 2. nohup: يضمن استمرار تشغيل البرنامج حتى بعد إغلاق الـ SSH/Terminal
+      # 3. async & poll: يخبر الأنسيبل بأن يشغل الأمر ولا ينتظر نهايته
+      shell: |
+        sudo fuser -k 5000/tcp || true
+        nohup python3 /home/sara/grad-proj/webhook_listener.py > /home/sara/grad-proj/webhook.log 2>&1 &
+      async: 60
       poll: 0
 
 # ==========================================================
@@ -87,7 +91,6 @@
         extra_args: "--break-system-packages"
 
     - name: Copy AI Components (Model, Scaler, Script)
-      # سيبحث الأنسيبل عن هذه الملفات داخل مجلد ansible في GitHub
       copy:
         src: "{{ item }}"
         dest: "/opt/{{ item }}"
@@ -99,5 +102,5 @@
 
     - name: Start AI Log Exporter (Background)
       shell: "nohup python3 /opt/log_exporter.py > /var/log/ai_exporter.log 2>&1 &"
-      async: 10
+      async: 60
       poll: 0
