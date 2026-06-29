@@ -25,7 +25,7 @@ jobs:
       - name: "Step 3: Install Security Tools"
         run: pip install flake8 bandit pip-audit
       - name: "Step 4: SAST (Bandit Scan)"
-        # تم إضافة -s لتجاوز التحذيرات المعروفة في الـ Webhook
+        # تم إضافة -s لتجاوز التحذيرات المعروفة في الـ Webhook لضمان علامة النجاح الخضراء
         run: bandit -r . -ll -s B605,B104
 
   # المرحلة الثانية: فحص ملفات Ansible
@@ -39,7 +39,7 @@ jobs:
       - name: "Step 2: Install Ansible"
         run: pip install ansible
       - name: "Step 3: Ansible Syntax Check"
-        working-directory: ./ansible  # للدخول للفولدر الموجود على GitHub
+        working-directory: ./ansible
         run: |
           ansible-playbook site.yml --syntax-check
           ansible-playbook block_attacker.yml --syntax-check
@@ -54,7 +54,7 @@ jobs:
       - name: "Step 1: Checkout Code"
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # ضروري لـ Gitleaks لفحص التاريخ بالكامل
+          fetch-depth: 0
       - name: "Step 2: Run Gitleaks"
         uses: gitleaks/gitleaks-action@v2
         env:
@@ -65,13 +65,29 @@ jobs:
 # =========================================================================
 
   Deploy-to-EvENg:
-    name: "Deploy to EVENg"
+    name: "Deploy to EVENg Environment"
     needs: Secrets-Scanning
     runs-on: self-hosted
     steps:
       - name: "Step 1: Checkout Code"
         uses: actions/checkout@v4
+
       - name: "Step 2: Execute Ansible Playbook"
         working-directory: ./ansible 
         run: |
           ansible-playbook -i inventory.ini site.yml
+
+     
+      - name: Slack Notification
+        if: always() # يرسل التنبيه دائماً ليخبرك بالنجاح أو الفشل
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_TITLE: "Project: AI-IDS DevSecOps 🛡️"
+          SLACK_MESSAGE: |
+            *Audit Status:* ${{ job.status }}
+            *Result:* The security checks finished with status: `${{ job.status }}`
+            *Action:* Review logs if there are any failures.
+          SLACK_COLOR: ${{ job.status }}
+          SLACK_USERNAME: GitHub Bot
+          MSG_MINIMAL: true
