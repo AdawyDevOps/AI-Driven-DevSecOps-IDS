@@ -8,60 +8,71 @@ on:
 
 jobs:
 # =========================================================================
-# 1️⃣ CONTINUOUS INTEGRATION (CI) ZONE
+# 1️⃣ CI ZONE: Security Audit Stages
 # =========================================================================
 
-  # المرحلة الأولى: فحص أمان البايثون
   Python-Security-Audit:
     name: "Python Quality & Security Audit"
     runs-on: ubuntu-latest
     steps:
-      - name: "Step 1: Checkout Code"
+      - name: "Checkout Code"
         uses: actions/checkout@v4
-      - name: "Step 2: Set up Python Environment"
+      - name: "Set up Python"
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-      - name: "Step 3: Install Security Tools"
+      - name: "Install Tools"
         run: pip install flake8 bandit pip-audit
-      - name: "Step 4: SAST (Bandit Scan)"
-        # تم إضافة -s لتجاوز التحذيرات المعروفة في الـ Webhook لضمان علامة النجاح الخضراء
+      - name: "Run Bandit SAST"
         run: bandit -r . -ll -s B605,B104
 
-  # المرحلة الثانية: فحص ملفات Ansible
   Ansible-Validation:
     name: "Ansible Syntax Check"
     needs: Python-Security-Audit
     runs-on: ubuntu-latest
     steps:
-      - name: "Step 1: Checkout Code"
+      - name: "Checkout Code"
         uses: actions/checkout@v4
-      - name: "Step 2: Install Ansible"
+      - name: "Install Ansible"
         run: pip install ansible
-      - name: "Step 3: Ansible Syntax Check"
+      - name: "Ansible Syntax Check"
         working-directory: ./ansible
         run: |
           ansible-playbook site.yml --syntax-check
           ansible-playbook block_attacker.yml --syntax-check
           ansible-playbook trap_attacker.yml --syntax-check
 
-  # المرحلة الثالثة: فحص تسريبات الأسرار (Gitleaks)
   Secrets-Scanning:
     name: "Gitleaks Secrets Scan"
     needs: Ansible-Validation
     runs-on: ubuntu-latest
     steps:
-      - name: "Step 1: Checkout Code"
+      - name: "Checkout Code"
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: "Step 2: Run Gitleaks"
+      - name: "Run Gitleaks"
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # --- الرسالة الواحدة الملخصة لكل مراحل الـ Check ---
+      - name: Slack Notification (Audit Summary)
+        if: always()
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_TITLE: "Project: AI-IDS DevSecOps 🛡️"
+          SLACK_MESSAGE: |
+            *Audit Status:* ${{ job.status }}
+            *Result:* All security checks (Python, Ansible, Gitleaks) finished with status: `${{ job.status }}`
+            *Action:* Review logs if there are any failures.
+          SLACK_COLOR: ${{ job.status }}
+          MSG_MINIMAL: true
+          SLACK_USERNAME: GitHub Bot
+
 # =========================================================================
-# 2️⃣ CONTINUOUS DEPLOYMENT (CD) ZONE
+# 2️⃣ CD ZONE: Final Deployment
 # =========================================================================
 
   Deploy-to-EvENg:
@@ -69,25 +80,19 @@ jobs:
     needs: Secrets-Scanning
     runs-on: self-hosted
     steps:
-      - name: "Step 1: Checkout Code"
+      - name: "Checkout Code"
         uses: actions/checkout@v4
-
-      - name: "Step 2: Execute Ansible Playbook"
+      - name: "Execute Playbook"
         working-directory: ./ansible 
-        run: |
-          ansible-playbook -i inventory.ini site.yml
+        run: ansible-playbook -i inventory.ini site.yml
 
-     
-      - name: Slack Notification
-        if: always() # يرسل التنبيه دائماً ليخبرك بالنجاح أو الفشل
+      # --- رسالة نهائية لحالة الـ Deploy في المعمل ---
+      - name: Slack Notification (Deployment Status)
+        if: always()
         uses: rtCamp/action-slack-notify@v2
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_TITLE: "Project: AI-IDS DevSecOps 🛡️"
-          SLACK_MESSAGE: |
-            *Audit Status:* ${{ job.status }}
-            *Result:* The security checks finished with status: `${{ job.status }}`
-            *Action:* Review logs if there are any failures.
+          SLACK_TITLE: "Final Deployment Status 🚀"
+          SLACK_MESSAGE: "The deployment to EVE-NG lab has finished with status: `${{ job.status }}`"
           SLACK_COLOR: ${{ job.status }}
-          SLACK_USERNAME: GitHub Bot
           MSG_MINIMAL: true
