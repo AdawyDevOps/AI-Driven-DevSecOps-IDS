@@ -66,17 +66,12 @@ jobs:
         uses: rtCamp/action-slack-notify@v2
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_USERNAME: GitHub Bot
+          SLACK_USERNAME: "GitHub Bot"
           SLACK_COLOR: ${{ job.status }}
-          SLACK_ICON: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
+          SLACK_ICON: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
           SLACK_TITLE: "" 
-          SLACK_MESSAGE: |
-            *Audit Status:* ${{ job.status }}
-            *Project:* AI-IDS DevSecOps 🛡️
-            *Result:* The security checks finished with status: `${{ job.status }}`
-            *Action:* Review logs if there are any failures.
-          MSG_MINIMAL: false
-          SLACK_FOOTER: "Powered by rtCamp's GitHub Actions Library"
+          SLACK_MESSAGE: "*Audit Status:* ${{ job.status }}\n*Project:* AI-IDS DevSecOps 🛡️\n*Result:* The security checks finished with status: `${{ job.status }}`\n*Action:* Review logs if there are any failures."
+          SLACK_FOOTER: "Powered By rtCamp's GitHub Actions Library"
 
 # =========================================================================
 # 2️⃣ CD ZONE: Final Deployment
