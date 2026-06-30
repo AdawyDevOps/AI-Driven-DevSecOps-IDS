@@ -62,16 +62,13 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_USERNAME: GitHub Bot
-          SLACK_COLOR: ${{ job.status }}اً
-          SLACK_TITLE: "Security Audit Results"
+          SLACK_COLOR: ${{ job.status }}
           SLACK_MESSAGE: |
             *Project: AI-IDS DevSecOps 🛡️*
             *Audit Status:* ${{ job.status }}
             *Result:* All security checks finished with status: `${{ job.status }}`
-            *Action:* Review logs if there are any failures.
           MSG_MINIMAL: false
           SLACK_FOOTER: "Powered by rtCamp's GitHub Actions Library"
-          SLACK_ICON: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
 
 # =========================================================================
 # 2️⃣ CD ZONE: Final Deployment
