@@ -68,7 +68,7 @@ jobs:
             *Result:* All security checks (Python, Ansible, Gitleaks) finished with status: `${{ job.status }}`
             *Action:* Review logs if there are any failures.
           SLACK_COLOR: ${{ job.status }}
-          MSG_MINIMAL: true
+          MSG_MINIMAL: false
           SLACK_USERNAME: GitHub Bot
 
 # =========================================================================
