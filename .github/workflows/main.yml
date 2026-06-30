@@ -56,18 +56,18 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # --- رسالة الـ Slack المعدلة لتظهر كجدول ---
       - name: Slack Notification (Audit Summary)
         if: always()
         uses: rtCamp/action-slack-notify@v2
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_USERNAME: GitHub Bot
-          SLACK_COLOR: ${{ job.status }}
-          SLACK_TITLE: "Project: AI-IDS DevSecOps 🛡️"
+          SLACK_COLOR: ${{ job.status }}اً
+          SLACK_TITLE: "Security Audit Results"
           SLACK_MESSAGE: |
+            *Project: AI-IDS DevSecOps 🛡️*
             *Audit Status:* ${{ job.status }}
-            *Result:* All security checks (Python, Ansible, Gitleaks) finished with status: `${{ job.status }}`
+            *Result:* All security checks finished with status: `${{ job.status }}`
             *Action:* Review logs if there are any failures.
           MSG_MINIMAL: false
           SLACK_FOOTER: "Powered by rtCamp's GitHub Actions Library"
