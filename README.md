@@ -392,7 +392,7 @@ ansible-playbook \
 
 | Member | Responsibilities |
 |---------|------------------|
-| **Ahmed Ibrahim Adawy Mohamed** | **DevOps, Infrastructure & Automation Lead** — Designed and implemented the enterprise EVE-NG topology, developed the complete Ansible automation framework, built the AI Log Exporter for integrating the Machine Learning model with the automation pipeline, implemented the multi-threaded Flask Webhook API, deployed and configured the Prometheus & Grafana monitoring stack, and co-developed the GitHub Actions CI/CD pipeline. |
+| **Ahmed Ibrahim Adawy** | **DevOps, Infrastructure & Automation Lead** — Designed and implemented the enterprise EVE-NG topology, developed the complete Ansible automation framework, built the AI Log Exporter for integrating the Machine Learning model with the automation pipeline, implemented the multi-threaded Flask Webhook API, deployed and configured the Prometheus & Grafana monitoring stack, and co-developed the GitHub Actions CI/CD pipeline. |
 | **Nagy** | Designed, trained, and evaluated the Random Forest Machine Learning model, including feature engineering, dataset preparation, and real-time inference logic. |
 | **Sara Ashraf** | Designed the enterprise network topology and contributed to the HMAC-SHA256 forensic watermarking implementation. |
 | **Asmaa Ibrahim** | Implemented the HMAC-SHA256 watermarking engine, developed the forensic verification module, and contributed to the Suricata IDS integration. |
@@ -420,34 +420,68 @@ ansible-playbook \
 # Repository Structure
 
 ```text
-ShadowNetX/
-│
+AI-Driven-DevSecOps-IDS/
+├── .github/
+│   └── workflows/
+│       ├── backup.yml                  # Disaster recovery & automated backup workflow
+│       └── main.yml                    # Main DevSecOps CI/CD pipeline (Bandit, Flake8, Gitleaks)
 ├── ansible/
-│   ├── playbooks/
-│   ├── inventory.ini
-│   └── roles/
-│
-├── ai/
-│   ├── model.pkl
-│   ├── feature_engineering.py
-│   └── log_exporter.py
-│
-├── webhook/
-│   └── webhook_listener.py
-│
-├── monitoring/
-│   ├── prometheus.yml
-│   └── grafana/
-│
-├── honeypots/
-│   ├── cowrie/
-│   └── dionaea/
-│
-├── docs/
-│
-└── README.md
+│   ├── ansible/                        # Sub-directory with localized playbook configs
+│   │   ├── inventories/development/
+│   │   │   └── hosts.yml
+│   │   ├── ansible.cfg
+│   │   ├── block_attacker.yml
+│   │   ├── inventory.ini
+│   │   ├── site.yml
+│   │   └── trap_attacker.yml
+│   ├── inventories/development/
+│   │   └── hosts.yml
+│   ├── roles/                          # Modular Ansible roles
+│   │   ├── honeypot/
+│   │   │   ├── files/
+│   │   │   │   ├── install.sh
+│   │   │   │   ├── tpot.yml
+│   │   │   │   ├── verify_logs.py
+│   │   │   │   └── watermarked_cowrie.py
+│   │   │   └── tasks/
+│   │   │       └── main.yml
+│   │   └── suricata/
+│   │       ├── files/
+│   │       │   ├── dataset_v1.json
+│   │       │   ├── rules_backup.txt
+│   │       │   ├── watermark.py
+│   │       │   └── watermark_processor.py
+│   │       └── tasks/
+│   │           └── main.yml
+│   ├── ansible.cfg                     # Main Ansible configuration
+│   ├── block_attacker.yml              # Dynamic firewall containment playbook (DROP)
+│   ├── deploy_watermark.yml            # Automated HMAC watermarking daemon installer
+│   ├── inventory.ini                   # Production EVE-NG target nodes inventory
+│   ├── log_exporter.py                 # Real-time Suricata eve.json tailer & ML feature extractor
+│   ├── model.pkl                       # Trained Random Forest ML model weights
+│   ├── prometheus.yml                  # High-frequency (5s) scrape metrics configuration
+│   ├── scaler.pkl                      # Standard feature scaler for ML pipeline
+│   ├── site.yml                        # Master environment provisioning playbook
+│   ├── trap_attacker.yml               # Transparent honeypot redirection playbook (DNAT)
+│   ├── verify_logs.py                  # HMAC-SHA256 forensic log integrity verifier
+│   ├── watermarked_cowrie.py           # Real-time honeypot log cryptographic signer
+│   └── webhook_listener.py             # Asynchronous multi-threaded Flask REST API bridge
+├── assets/                             # Documentation diagrams, topology maps, and SOC banners
+│   ├── Active mitigation sequence diagram.png
+│   ├── Banner.png
+│   ├── Final Netw Topolgy.png
+│   ├── Final Sys Arch.png
+│   ├── README.md
+│   └── Soc-Dashboard.png
+├── cicd/                               # Auxiliary CI/CD components
+│   ├── pipelines/
+│   │   └── README.md
+│   └── scripts/
+│       └── README.md
+├── .gitignore
+├── README.md                           # Main repository documentation
+└── requirements.txt                    # Python runtime dependencies
 ```
-
 ---
 
 # Future Enhancements
