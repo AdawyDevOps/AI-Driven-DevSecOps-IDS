@@ -102,7 +102,7 @@ Preserve Evidence
 The following diagram illustrates the logical architecture of **ShadowNetX v2+**, highlighting the interaction between the AI detection engine, asynchronous automation pipeline, deception layer, observability stack, and forensic protection components.
 
 <p align="center">
-<img src="https://github.com/user-attachments/assets/952a4b62-de0d-467b-bea7-f19244696a79" width="90%" alt="ShadowNetX System Architecture">
+<img src="assets/Final Sys Arch.png">
 </p>
 
 ---
@@ -112,7 +112,7 @@ The following diagram illustrates the logical architecture of **ShadowNetX v2+**
 The following topology represents the actual enterprise laboratory deployed inside **EVE-NG**, including the attacker segment, Suricata gateway, production network, deception subnet, monitoring server, and automation controller.
 
 <p align="center">
-<img src="https://github.com/user-attachments/assets/76c01f55-17e9-4970-b53b-948b1f84f865" width="90%" alt="ShadowNetX Network Topology">
+<img src="assets/Final Netw Topolgy.png">
 </p>
 
 ---
@@ -122,7 +122,7 @@ The following topology represents the actual enterprise laboratory deployed insi
 The following sequence diagram illustrates the complete mitigation lifecycle—from initial packet inspection to automated threat isolation, transparent deception, and cryptographic forensic logging.
 
 <p align="center">
-<img src="https://github.com/user-attachments/assets/95e93ab0-f2f5-41f0-a42d-ec2a829c76ab" width="90%" alt="Active Mitigation Sequence">
+<img src="assets/Active mitigation sequence diagram.png">
 </p>
 
 > The three diagrams above provide complementary perspectives of the platform:
