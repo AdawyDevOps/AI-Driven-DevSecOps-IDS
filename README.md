@@ -1,4 +1,4 @@
-<img width="2172" height="724" alt="Banner" src="https://github.com/user-attachments/assets/e63026ca-e376-44b7-9825-cb78fd15b30f" />
+<img width="2172" height="724" alt="Banner" src="assets/Banner.png" />
 
 # 🛡️ ShadowNetX v2+
 
