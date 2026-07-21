@@ -32,10 +32,36 @@ ShadowNetX v2+ integrates <strong>Machine Learning</strong>, <strong>Security Or
 
 ---
 
-> **Project Workflow**
->
-> **Detect → Analyze → Classify → Automate → Deceive → Monitor → Preserve Evidence**
+> **ShadowNetX v2+** is an AI-powered DevSecOps platform that combines Machine Learning, SOAR automation, network deception, and continuous observability to detect, contain, and investigate cyber threats in real time.
 
+## 🔄 Threat Lifecycle
+
+The following workflow summarizes the end-to-end lifecycle of an attack within **ShadowNetX v2+**.
+
+```text
+Detect
+   │
+   ▼
+Analyze
+   │
+   ▼
+Classify
+   │
+   ▼
+Automate
+   │
+   ▼
+Contain
+   │
+   ▼
+Deceive
+   │
+   ▼
+Monitor
+   │
+   ▼
+Preserve Evidence
+```
 ---
 
 # 🚀 Key Features
@@ -57,12 +83,17 @@ ShadowNetX v2+ integrates <strong>Machine Learning</strong>, <strong>Security Or
 - [System Architecture](#system-architecture)
 - [Native Network Topology](#native-network-topology)
 - [Active Mitigation Sequence](#active-mitigation-sequence)
+- [SOC Monitoring Dashboard](#soc-monitoring-dashboard)
 - [Core Architecture](#core-architecture)
 - [Performance Evaluation](#performance-evaluation)
 - [KPI Comparison](#kpi-comparison)
 - [Quick Start](#quick-start)
 - [Engineering Team](#engineering-team)
+- [Technology Stack](#technology-stack)
+- [Repository Structure](#repository-structure)
+- [Future Enhancements](#future-enhancements)
 - [Academic Information](#academic-information)
+- [Acknowledgments](#acknowledgments)
 
 ---
 
@@ -107,14 +138,14 @@ The following sequence diagram illustrates the complete mitigation lifecycle—f
 The dashboard provides real-time visibility into AI detections, attack intensity, and overall platform health through Prometheus and Grafana.
 
 <p align="center">
-  <img src="YOUR_DASHBOARD_IMAGE" width="90%" alt="Grafana Dashboard">
+  <img src="assets/Centralized SOC Dashboard .png" width="90%" alt="Grafana Dashboard">
 </p>
 
 The dashboard displays:
 
-- Live attack intensity
-- AI detection timeline
-- Benign vs malicious traffic statistics
+- Real-time Attack Intensity
+- AI Detection Timeline
+- Benign vs. Malicious Traffic Statistics
 - Prometheus metrics exported by the AI Log Exporter
   ---
   
@@ -369,7 +400,7 @@ ansible-playbook \
 
 ---
 
-# Technologies Stack
+# Technology Stack 
 
 | Category | Technologies |
 |----------|--------------|
